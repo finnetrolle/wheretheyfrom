@@ -47,7 +47,7 @@ class TestResource @Autowired constructor (
 
     @RequestMapping("gate")
     @ResponseBody
-    fun gate():ResponseEntity<String> {
+    fun gate():ResponseEntity<List<EveGateParser.HistoryElement>> {
         return ResponseEntity.ok(eveGateParser.parse("Kings of the Carnival Creation"))
     }
 
