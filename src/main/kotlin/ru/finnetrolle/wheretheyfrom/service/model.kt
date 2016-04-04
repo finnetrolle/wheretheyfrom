@@ -2,6 +2,7 @@ package ru.finnetrolle.wheretheyfrom.service
 
 import ru.finnetrolle.wheretheyfrom.service.entitysource.AllianceEntitySource
 import ru.finnetrolle.wheretheyfrom.service.entitysource.CorporationEntitySource
+import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -10,10 +11,31 @@ import java.util.*
  * Created by maxsyachin
  */
 
-data class Alliance(val name: String, val id: Long, val corpIds: Set<Long>, val charIds: Set<Long>) {companion object{}}
-data class Corporation(val name: String, val id: Long, val allyId: Long) {companion object{}}
-data class Pilot(val name: String, val id: Long, val corp: Long, val ally: Long, val occupation: List<Occupation>) {companion object{}}
-data class Occupation(val corpId: Long, val allyId: Long?, val from: Date, val till: Date) {companion object{}}
+data class Alliance(val name: String,
+                    val id: Long,
+                    val corpIds: Set<Long>,
+                    val charIds: Set<Long>)
+{companion object{}}
+
+data class Corporation(val name: String,
+                       val id: Long,
+                       val allyId: Long,
+                       val occupation: MutableList<EveGateParser.HistoryElement> = mutableListOf())
+{companion object{}}
+
+data class Pilot(val name: String,
+                 val id: Long,
+                 val corp: Long,
+                 val ally: Long,
+                 val occupation: List<Occupation>,
+                 val allyOccupation: MutableList<EveGateParser.HistoryElement> = mutableListOf())
+{companion object{}}
+
+data class Occupation(val corpId: Long,
+                      val allyId: Long?,
+                      val from: Date,
+                      val till: Date)
+{companion object{}}
 
 fun Alliance.Companion.from(ally: Crawler.AllyWrapper?) =
     if (ally == null) null
@@ -29,10 +51,14 @@ fun Corporation.Companion.empty() = Corporation("", 0L, 0L)
 fun Pilot.Companion.from(cw: Crawler.CharacterWrapper?, corpSource: CorporationEntitySource) =
         if (cw == null) null
         else {
+            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
             val occ = cw.history.map { o ->
                 val corp = corpSource.get(o.corporation_id.toLong())
                 val allyId = if (corp != null) corp.allyId else null
-                Occupation(o.corporation_id.toLong(), allyId, Date(), Date())
+                Occupation(o.corporation_id.toLong(),
+                        allyId,
+                        sdf.parse(o.start_date),
+                        if (o.end_date == null) Date() else sdf.parse(o.end_date))
             }
             Pilot(
                     cw.info.name,

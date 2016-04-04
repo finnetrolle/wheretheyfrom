@@ -42,6 +42,7 @@ class Crawler {
             resp.bufferEntity()
             return resp.readEntity(String::class.java)
         } catch (e: Exception) {
+            println("Some shit happened for $id. Continue")
             // Todo: Add logger here
             return null
         }
@@ -55,7 +56,6 @@ class Crawler {
     }
 
     fun getAllyWrapper(id: Long): AllyWrapper? {
-//        println("Requesting ally $id")
         val info = askAllyWrapper(id, 10000)
         if (info == null)
             return null
@@ -68,7 +68,6 @@ class Crawler {
     }
 
     fun getCorpWrapper(id: Long): CorporationInfo? {
-//        println("Requesting corporation $id")
         try {
             val json = ask("corporation", id, 0)
             if (json != null) {
@@ -83,7 +82,6 @@ class Crawler {
     }
 
     fun getCharacterWrapper(id: Long): CharacterWrapper? {
-//        println("Requesting character $id")
         val json = ask("character", id, 0)
         if (json != null) {
             return jacksonObjectMapper().readValue<CharacterWrapper>(json)
@@ -91,46 +89,5 @@ class Crawler {
             return null
         }
     }
-
-//    fun getUsersOfAlly(ally: Long):List<Character> {
-//        val checkResp = makeAlliListRequest(ally.toString(), 10000)
-//        checkResp.bufferEntity()
-//        val count = jacksonObjectMapper().readValue<AllyWrapper>(checkResp.readEntity(String::class.java)).info.memberCount
-//        return (0..(count/200)).map { mineAllyUsers(ally.toString(), it) }.flatten()
-//    }
-//
-//    fun getVisitedCorps(ally: Long) = getVisitedCorps(getUsersOfAlly(ally))
-//
-//    private fun getVisitedCorps(chars: List<Character>): Set<String> {
-//        val corps = Par.go(chars, {c -> getCharacterSheet(c.character_id)})
-//                .flatMap { p -> p.history }
-//                .map { h -> h.corporation_id }
-//        println("whole ${corps.size} corps")
-//        return corps.toSet()
-//    }
-//
-//    fun getCharacterSheet(id: String): CharacterWrapper {
-//        val resp = makeCharacterRequest(id)
-//        resp.bufferEntity()
-//        val data = jacksonObjectMapper().readValue<CharacterWrapper>(resp.readEntity(String::class.java))
-//        return data
-//    }
-//
-//    private fun makeAlliListRequest(id: String, page: Int) = makeRequest("allilist", client, id, page)
-//    private fun makeCharacterRequest(id: String) = makeRequest("character", client, id, 0)
-//
-//    private fun makeRequest(type: String, client: Client, id: String, page: Int) = client.target("http://evewho.com").path("api.php")
-//                .queryParam("type", type)
-//                .queryParam("id", id)
-//                .queryParam("page", page)
-//                .request(MediaType.APPLICATION_JSON_TYPE)
-//                .get()
-//
-//    private fun mineAllyUsers(ally: String, page: Int): List<Character> {
-//        val resp = makeAlliListRequest(ally, page)
-//        resp.bufferEntity()
-//        val data = jacksonObjectMapper().readValue<AllyWrapper>(resp.readEntity(String::class.java))
-//        return data.characters
-//    }
 
 }
